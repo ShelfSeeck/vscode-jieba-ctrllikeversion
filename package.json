@@ -132,18 +132,18 @@
     "publish": "bunx @vscode/vsce publish"
   },
   "devDependencies": {
+    "@eslint/js": "^9.35.0",
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.0",
     "@types/node": "^24.3.3",
     "@types/vscode": "^1.104.0",
-    "@typescript-eslint/eslint-plugin": "^8.43.0",
-    "@typescript-eslint/parser": "^8.43.0",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.6.0",
     "eslint": "^9.35.0",
     "glob": "^8.0.3",
     "mocha": "^10.0.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.44.0"
   },
   "dependencies": {
     "jieba-wasm": "^2.4.0",

@@ -1,7 +1,7 @@
 import QuickLRU from 'quick-lru';
 import * as vscode from 'vscode';
 
-const cache = new QuickLRU<String, Token[]>({ maxSize: 25 });
+const cache = new QuickLRU<string, Token[]>({ maxSize: 25 });
 
 interface Token {
   word: string;
@@ -27,28 +27,28 @@ export async function initializeSegmenter(): Promise<void> {
 
   try {
     switch (segmenterType) {
-      case SegmenterType.Jieba:
-        const jieba = await import('jieba-wasm');
-        segmenter = (text: string) => jieba.tokenize(text, "default", true);
-        break;
+    case SegmenterType.Jieba:
+    { const jieba = await import('jieba-wasm');
+      segmenter = (text: string) => jieba.tokenize(text, "default", true);
+      break; }
 
-      case SegmenterType.IntlSegmenter:
-        const locales = config.get<string[]>('intlSegmenterLocales');
-        const intlSegmenter = new Intl.Segmenter(locales, { granularity: 'word' });
-        segmenter = (text: string) =>
-          Array.from(intlSegmenter.segment(text), ({ segment, index }) => {
-            return { word: segment, start: index, end: index + segment.length };
-          });
-        break;
+    case SegmenterType.IntlSegmenter:
+    { const locales = config.get<string[]>('intlSegmenterLocales');
+      const intlSegmenter = new Intl.Segmenter(locales, { granularity: 'word' });
+      segmenter = (text: string) =>
+        Array.from(intlSegmenter.segment(text), ({ segment, index }) => {
+          return { word: segment, start: index, end: index + segment.length };
+        });
+      break; }
 
-      default:
-        vscode.window.showErrorMessage(`Unknown segmenter type: ${segmenterType}`);
-        segmenter = null;
-        break;
+    default:
+      vscode.window.showErrorMessage(`Unknown segmenter type: ${segmenterType}`);
+      segmenter = null;
+      break;
     }
   } catch (error) {
     vscode.window.showErrorMessage(
-      `Failed to initialize ${segmenterType} segmenter. ${error instanceof Error ? error.message : error}`);
+      `Failed to initialize ${segmenterType} segmenter. ${error instanceof Error ? error.message : String(error)}`);
     segmenter = null;
   }
 }

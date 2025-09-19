@@ -15,9 +15,10 @@ async function main() {
     // Download VS Code, unzip it and run the integration test
     await runTests({ extensionDevelopmentPath, extensionTestsPath });
   } catch (err) {
-    console.error("Failed to run tests");
+    console.error(`Failed to run tests. Error: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 main();
