@@ -55,10 +55,10 @@ export async function killWord() {
 
   const { newSelections, rangesToDelete } = searchForward();
 
-  for (const range of rangesToDelete) {
-    const textToCut = document.getText(range);
-    clipboard.writeText(textToCut);
-    break;
+  const firstRange = rangesToDelete[0];
+  if (firstRange !== undefined) {
+    const textToCut = document.getText(firstRange);
+    await clipboard.writeText(textToCut);
   }
   editor.selections = newSelections;
   editor.revealRange(newSelections[0], vscode.TextEditorRevealType.Default);
@@ -79,10 +79,10 @@ export async function backwardKillWord() {
 
   const { newSelections, rangesToDelete } = searchBackward();
 
-  for (const range of rangesToDelete) {
-    const textToCut = document.getText(range);
-    clipboard.writeText(textToCut);
-    break;
+  const firstRange = rangesToDelete[0];
+  if (firstRange !== undefined) {
+    const textToCut = document.getText(firstRange);
+    await clipboard.writeText(textToCut);
   }
   editor.selections = newSelections;
   editor.revealRange(newSelections[0], vscode.TextEditorRevealType.Default);
