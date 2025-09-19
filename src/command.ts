@@ -11,6 +11,8 @@ export function forwardWord() {
   }
   const { newSelections } = searchForward();
   editor.selections = newSelections;
+  // 滚动屏幕
+  editor.revealRange(newSelections[0], vscode.TextEditorRevealType.Default);
 }
 
 export function backwardWord() {
@@ -20,6 +22,7 @@ export function backwardWord() {
   }
   const { newSelections } = searchBackward();
   editor.selections = newSelections;
+  editor.revealRange(newSelections[0], vscode.TextEditorRevealType.Default);
 }
 
 export function forwardSelectWord() {
@@ -29,6 +32,7 @@ export function forwardSelectWord() {
   }
   const { newSelections } = searchForward(false);
   editor.selections = newSelections;
+  editor.revealRange(newSelections[0], vscode.TextEditorRevealType.Default);
 }
 
 export function backwardSelectWord() {
@@ -38,6 +42,7 @@ export function backwardSelectWord() {
   }
   const { newSelections } = searchBackward(false);
   editor.selections = newSelections;
+  editor.revealRange(newSelections[0], vscode.TextEditorRevealType.Default);
 }
 
 export async function killWord() {
@@ -56,6 +61,7 @@ export async function killWord() {
     break;
   }
   editor.selections = newSelections;
+  editor.revealRange(newSelections[0], vscode.TextEditorRevealType.Default);
   await editor.edit((edit) => {
     for (const range of rangesToDelete) {
       edit.delete(range);
@@ -79,6 +85,7 @@ export async function backwardKillWord() {
     break;
   }
   editor.selections = newSelections;
+  editor.revealRange(newSelections[0], vscode.TextEditorRevealType.Default);
   await editor.edit((edit) => {
     for (const range of rangesToDelete) {
       edit.delete(range);
