@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.3.10
+
+- Fix emoji support
+
 ## 0.3.6
 
 - Add `Intl.Segmenter` as an option

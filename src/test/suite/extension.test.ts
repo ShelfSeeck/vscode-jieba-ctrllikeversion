@@ -13,15 +13,17 @@ import {
 } from "../../command";
 import { initializeSegmenter } from "../../parse";
 
-
 suite("Extension Test Suite", () => {
-  vscode.window.showInformationMessage("Start all tests.");
+  vscode.window.showInformationMessage("Start editor tests.");
 
   test("Basic test", basicTest);
   test("English test", englishTest);
   test("Javascript expression test", jsExpTest);
   test("Selection test", selectionTest);
   test("Long text test", longTextTest);
+  test("Emoji tokenization test", emojiTokenizationTest);
+  test("ZWJ emoji test", zwjEmojiTest);
+  test("Mixed emoji text test", mixedEmojiTextTest);
 });
 
 const chnText = "“自由软件”尊重用户的自由，并且尊重整个社区。";
@@ -256,4 +258,145 @@ async function longTextTest() {
     editor.selection.isEqual(new vscode.Selection(startPos, startPos)),
     true,
   );
+}
+
+// 测试单个emoji字符的分词
+async function emojiTokenizationTest() {
+  await initializeSegmenter();
+  const doc = await vscode.workspace.openTextDocument();
+  await vscode.window.showTextDocument(doc);
+  const editor = vscode.window.activeTextEditor;
+  assert.ok(editor !== undefined);
+
+  // 测试单个emoji，如😅（这个emoji在UTF-16中占4个code unit）
+  const emojiText = "测试😅emoji分词";
+  const startPos = new vscode.Position(0, 0);
+  await editor.edit((edit) => {
+    edit.insert(startPos, emojiText);
+  });
+  editor.selection = new vscode.Selection(startPos, startPos);
+
+  // 移动到emoji开始位置
+  forwardWord();
+  assert.strictEqual(editor.selection.start.character, 2);
+
+  forwardWord();
+  // 移动到emoji之后
+  // emoji😅在UTF-16中占5个code unit
+  assert.strictEqual(editor.selection.start.character, 4);
+
+  forwardWord();
+  assert.strictEqual(editor.selection.start.character, 9);
+
+  await backwardKillWord();
+
+  // 测试删除emoji
+  await backwardKillWord();
+  // 删除emoji后，光标应该在"分"字位置
+  assert.strictEqual(editor.selection.start.character, 2);
+  // 检查emoji确实被删除了
+  assert.strictEqual(
+    editor.document.getText(),
+    "测试分词"
+  );
+}
+
+// 测试ZWJ复合emoji的分词
+async function zwjEmojiTest() {
+  await initializeSegmenter();
+  const doc = await vscode.workspace.openTextDocument();
+  await vscode.window.showTextDocument(doc);
+  const editor = vscode.window.activeTextEditor;
+  assert.ok(editor !== undefined);
+
+  // 测试ZWJ复合emoji，如👨‍👩‍👧‍👦（家庭emoji）
+  const zwjText = "家庭👨‍👩‍👧‍👦表情符号";
+  const startPos = new vscode.Position(0, 0);
+  await editor.edit((edit) => {
+    edit.insert(startPos, zwjText);
+  });
+  editor.selection = new vscode.Selection(startPos, startPos);
+
+  // 移动到复合emoji开始位置
+  forwardWord();
+  assert.strictEqual(editor.selection.start.character, 2);
+
+  forwardWord();
+  // 复合emoji👨‍👩‍👧‍👦应该被识别为一个整体，在UTF-16中占11个code unit
+  assert.strictEqual(editor.selection.start.character, 13);
+
+  // 移动到最后
+  forwardWord();
+  assert.strictEqual(editor.selection.start.character, 17);
+
+  await backwardKillWord();
+  assert.strictEqual(editor.selection.start.character, 13);
+
+  backwardWord();
+  // 测试删除复合emoji
+  await killWord();
+  assert.strictEqual(editor.selection.start.character, 2);
+  // 检查复合emoji确实被整体删除了
+  assert.strictEqual(
+    editor.document.getText(),
+    "家庭"
+  );
+}
+
+// 测试混合文本中的emoji处理
+async function mixedEmojiTextTest() {
+  await initializeSegmenter();
+  const doc = await vscode.workspace.openTextDocument();
+  await vscode.window.showTextDocument(doc);
+  const editor = vscode.window.activeTextEditor;
+  assert.ok(editor !== undefined);
+
+  // 测试混合文本：中文 + 单个emoji + ZWJ复合emoji + 英文
+  const mixedText = "中文😊和👨‍👩‍👧‍👦家庭😮‍💨English";
+  const startPos = new vscode.Position(0, 0);
+  await editor.edit((edit) => {
+    edit.insert(startPos, mixedText);
+  });
+  editor.selection = new vscode.Selection(startPos, startPos);
+
+  // 测试前向移动
+  forwardWord(); // "中文"（jieba将"中文"识别为一个词）
+  assert.strictEqual(editor.selection.start.character, 2);
+
+  forwardWord(); // 😊（单个emoji）
+  assert.strictEqual(editor.selection.start.character, 4);
+
+  forwardWord(); // "和"
+  assert.strictEqual(editor.selection.start.character, 5);
+
+  forwardWord(); // 👨‍👩‍👧‍👦（复合emoji）
+  assert.strictEqual(editor.selection.start.character, 16); // 复合emoji占11个code unit
+
+  forwardWord(); // "家庭"（jieba将"家庭"识别为一个词）
+  assert.strictEqual(editor.selection.start.character, 18);
+
+  forwardWord(); // ‍😮‍💨（复合emoji）
+  assert.strictEqual(editor.selection.start.character, 23); // 复合emoji占5个code unit
+
+  forwardWord(); // "E"（英文）
+  assert.strictEqual(editor.selection.start.character, 30);
+
+  // 测试后向移动
+  backwardWord(); // ‍😮‍💨（复合emoji）
+  assert.strictEqual(editor.selection.start.character, 23);
+
+  await backwardKillWord();
+  assert.strictEqual(editor.selection.start.character, 18);
+
+  await backwardKillWord();
+  assert.strictEqual(editor.selection.start.character, 16);
+  backwardWord();
+  await killWord();
+  assert.strictEqual(editor.selection.start.character, 5);
+
+  backwardWord(); // 😊（单个emoji）
+  assert.strictEqual(editor.selection.start.character, 4);
+
+  backwardWord(); // "中文"
+  assert.strictEqual(editor.selection.start.character, 2);
 }
