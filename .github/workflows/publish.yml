@@ -39,16 +39,3 @@ jobs:
     - name: Publish to VSCode Marketplace
       run: bunx @vscode/vsce publish -p ${{ secrets.VSCE_PAT }}
       
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/v')
-      with:
-        tag_name: ${{ github.ref_name }}
-        name: Release ${{ github.ref_name }}
-        body: |
-          Automatic release triggered by tag push.
-          
-          ## Changes
-          See CHANGELOG.md for detailed changes.
-        draft: false
-        prerelease: false
