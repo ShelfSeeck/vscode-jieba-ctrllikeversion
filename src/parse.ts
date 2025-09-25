@@ -25,26 +25,6 @@ export function intlSegmenterTokenizeFunc(locales: string[] | undefined): Segmen
 export async function jiebaTokenizeFunc(): Promise<SegmenterFunction> {
   const jieba = await import('jieba-wasm');
 
-  /**
-   * 将码点索引转换为UTF-16 code unit索引
-   * @param text 原始文本
-   * @param codePointIndex 码点索引
-   * @returns UTF-16 code unit索引
-   */
-  function codePointIndexToUtf16Index(text: string, codePointIndex: number): number {
-    let utf16Index = 0;
-    let codePointCount = 0;
-
-    for (const char of text) {
-      if (codePointCount >= codePointIndex) {
-        break;
-      }
-      utf16Index += char.length; // 每个字符的UTF-16长度（1或2）
-      codePointCount++;
-    }
-
-    return utf16Index;
-  }
 
   /**
    * 检查字符串是否是emoji
@@ -101,15 +81,41 @@ export async function jiebaTokenizeFunc(): Promise<SegmenterFunction> {
     return mergedTokens;
   }
 
+  /**
+   * 构建码点索引到UTF-16索引的映射表
+   * @param text 原始文本
+   * @returns 映射表数组，索引为码点索引，值为UTF-16索引
+   */
+  function buildCodePointToUtf16Map(text: string): number[] {
+    const codePointToUtf16Map: number[] = [];
+    let utf16Index = 0;
+    let codePointIndex = 0;
+
+    // 遍历文本，构建映射表
+    for (const char of text) {
+      codePointToUtf16Map[codePointIndex] = utf16Index;
+      utf16Index += char.length; // 每个字符的UTF-16长度（1或2）
+      codePointIndex++;
+    }
+    // 添加最后一个位置的映射（用于end索引）
+    codePointToUtf16Map[codePointIndex] = utf16Index;
+
+    return codePointToUtf16Map;
+  }
+
+
   return (text: string) => {
     // 调用原始的jieba.tokenize
     const originalTokens = jieba.tokenize(text, "default", true);
 
-    // 转换码点索引为UTF-16 code unit索引
+    // 预计算码点索引到UTF-16索引的映射表
+    const codePointToUtf16Map = buildCodePointToUtf16Map(text);
+
+    // 使用预计算的映射表转换索引
     let tokens = originalTokens.map((token: { word: string; start: number; end: number }) => ({
       word: token.word,
-      start: codePointIndexToUtf16Index(text, token.start),
-      end: codePointIndexToUtf16Index(text, token.end)
+      start: codePointToUtf16Map[token.start],
+      end: codePointToUtf16Map[token.end]
     }));
 
     // 合并ZWJ序列的复合emoji
