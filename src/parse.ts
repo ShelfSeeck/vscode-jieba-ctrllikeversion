@@ -25,57 +25,66 @@ export function intlSegmenterTokenizeFunc(locales: string[] | undefined): Segmen
 export async function jiebaTokenizeFunc(): Promise<SegmenterFunction> {
   const jieba = await import('jieba-wasm');
 
-
   /**
-   * 检查字符串是否是emoji
-   * @param str 要检查的字符串
-   * @returns 是否是emoji
+   * 基于grapheme集群边界合并tokens，包含码点索引到UTF-16索引的转换
+   * @param originalTokens 原始tokens（包含码点索引）
+   * @param text 原始文本
+   * @returns 合并后的tokens（包含UTF-16索引）
    */
-  function isEmoji(str: string): boolean {
-    // 简单的emoji检测：包含emoji字符或ZWJ
-    const emojiRegex = /\p{Emoji}/u;
-    return emojiRegex.test(str) || str.includes('\u200D');
-  }
+  function mergeGraphemeTokens(originalTokens: { word: string; start: number; end: number }[], text: string): Token[] {
+    // 首先将码点索引转换为UTF-16索引
+    const codePointToUtf16Map = buildCodePointToUtf16Map(text);
+    const tokens = originalTokens.map((token) => ({
+      word: token.word,
+      start: codePointToUtf16Map[token.start],
+      end: codePointToUtf16Map[token.end]
+    }));
 
-  /**
-   * 处理ZWJ序列，合并复合emoji
-   * @param tokens 原始tokens
-   * @returns 处理后的tokens
-   */
-  function mergeZwjTokens(tokens: Token[]): Token[] {
+    // 创建grapheme分割器
+    const graphemeSegmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+    const graphemes = Array.from(graphemeSegmenter.segment(text));
+
+    // 预构建位置到grapheme索引的映射表
+    const positionToGraphemeIndex: number[] = new Array<number>(text.length).fill(-1);
+    for (let i = 0; i < graphemes.length; i++) {
+      const g = graphemes[i];
+      for (let pos = g.index; pos < g.index + g.segment.length; pos++) {
+        if (pos < text.length) {
+          positionToGraphemeIndex[pos] = i;
+        }
+      }
+    }
+
     const mergedTokens: Token[] = [];
-    const ZWJ = '\u200D'; // 零宽连字符
-
     let i = 0;
+
     while (i < tokens.length) {
       const currentToken = tokens[i];
+      const currentGraphemeIndex = positionToGraphemeIndex[currentToken.start];
+      let mergedWord = currentToken.word;
+      let end = currentToken.end;
+      let j = i + 1;
 
-      // 检查是否是ZWJ序列的开始（当前token是emoji，后面跟着ZWJ和另一个emoji）
-      if (i + 2 < tokens.length &&
-        tokens[i + 1].word === ZWJ &&
-        isEmoji(currentToken.word) &&
-        isEmoji(tokens[i + 2].word)) {
-
-        // 合并ZWJ序列
-        let mergedWord = currentToken.word;
-        let j = i + 1;
-
-        while (j < tokens.length && tokens[j].word === ZWJ && j + 1 < tokens.length && isEmoji(tokens[j + 1].word)) {
-          mergedWord += tokens[j].word + tokens[j + 1].word;
-          j += 2;
+      // 合并具有相同grapheme索引的连续tokens
+      while (j < tokens.length) {
+        const nextToken = tokens[j];
+        const nextGraphemeIndex = positionToGraphemeIndex[nextToken.start];
+        if (currentGraphemeIndex === nextGraphemeIndex) {
+          mergedWord += nextToken.word;
+          end = nextToken.end;
+          j++;
+        } else {
+          break;
         }
-
-        mergedTokens.push({
-          word: mergedWord,
-          start: currentToken.start,
-          end: tokens[j - 1].end
-        });
-
-        i = j;
-      } else {
-        mergedTokens.push(currentToken);
-        i++;
       }
+
+      mergedTokens.push({
+        word: mergedWord,
+        start: currentToken.start,
+        end: end
+      });
+
+      i = j;
     }
 
     return mergedTokens;
@@ -105,21 +114,11 @@ export async function jiebaTokenizeFunc(): Promise<SegmenterFunction> {
 
 
   return (text: string) => {
-    // 调用原始的jieba.tokenize
+    // 调用原始的jieba.tokenize获取包含码点索引的tokens
     const originalTokens = jieba.tokenize(text, "default", true);
 
-    // 预计算码点索引到UTF-16索引的映射表
-    const codePointToUtf16Map = buildCodePointToUtf16Map(text);
-
-    // 使用预计算的映射表转换索引
-    let tokens = originalTokens.map((token: { word: string; start: number; end: number }) => ({
-      word: token.word,
-      start: codePointToUtf16Map[token.start],
-      end: codePointToUtf16Map[token.end]
-    }));
-
-    // 合并ZWJ序列的复合emoji
-    tokens = mergeZwjTokens(tokens);
+    // 基于grapheme集群边界合并tokens，内部包含码点索引到UTF-16索引的转换
+    const tokens = mergeGraphemeTokens(originalTokens, text);
 
     return tokens;
   };
