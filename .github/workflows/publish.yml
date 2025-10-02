@@ -38,4 +38,8 @@ jobs:
       
     - name: Publish to VSCode Marketplace
       run: bunx @vscode/vsce publish -p ${{ secrets.VSCE_PAT }}
+      continue-on-error: true
       
+    - name: Publish to Open VSX
+      run: bunx ovsx publish -p ${{ secrets.OPEN_VSX_PAT }}
+      continue-on-error: true
