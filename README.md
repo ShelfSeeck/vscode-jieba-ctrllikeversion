@@ -55,6 +55,9 @@ npm run package  # 生成 .vsix 文件
 - [stephanoskomnenos/vscode-jieba](https://github.com/stephanoskomnenos/vscode-jieba) — 原始项目
 - [jieba-wasm](https://github.com/nicross/jieba-wasm) — jieba-rs 的 WebAssembly 实现
 
+
+## 已知问题
+每次启动时需要加载jieba导致会卡顿，建议文档编辑等高需求场景下再进行使用
 ## License
 
 MIT License — 保留原作者版权声明
