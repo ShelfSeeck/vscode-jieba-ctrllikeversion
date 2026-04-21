@@ -133,10 +133,10 @@ export enum SegmenterType {
 
 export async function initializeSegmenter(): Promise<void> {
   cache.clear();
-  const config = vscode.workspace.getConfiguration('jieba');
+  const config = vscode.workspace.getConfiguration('cws');
   const segmenterType = config.get<SegmenterType>('segmenter');
 
-  vscode.window.showInformationMessage(`Initializing segmenter: ${segmenterType}...`);
+  vscode.window.showInformationMessage(`正在初始化分词器: ${segmenterType}...`);
 
   try {
     switch (segmenterType) {
@@ -154,20 +154,20 @@ export async function initializeSegmenter(): Promise<void> {
     }
 
     default:
-      vscode.window.showErrorMessage(`Unknown segmenter type: ${segmenterType}`);
+      vscode.window.showErrorMessage(`未知的分词器类型: ${segmenterType}`);
       segmenter = null;
       break;
     }
   } catch (error) {
     vscode.window.showErrorMessage(
-      `Failed to initialize ${segmenterType} segmenter. ${error instanceof Error ? error.message : String(error)}`);
+      `分词器初始化失败 (${segmenterType}): ${error instanceof Error ? error.message : String(error)}`);
     segmenter = null;
   }
 }
 
 export function parseSentence(sentence: string): Token[] {
   if (!segmenter) {
-    vscode.window.showErrorMessage('Segmenter is not initialized or failed to initialize.');
+    vscode.window.showErrorMessage('分词器未初始化或初始化失败');
     throw new Error('Segmenter is not initialized or failed to initialize.');
   }
   if (cache.has(sentence)) {

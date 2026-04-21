@@ -1,16 +1,16 @@
 {
-  "name": "jieba",
-  "displayName": "Jieba",
-  "description": "Jieba Chinese word segmenter for VSCode",
-  "version": "0.3.15",
+  "name": "jieba-ctrllikeversion",
+  "displayName": "Jieba Ctrl-like Version",
+  "description": "中文分词扩展，快捷键与英文体验统一（Ctrl+Left/Right/Backspace/Delete）。基于 vscode-jieba 改造。",
+  "version": "0.1.0",
   "engines": {
-    "vscode": "^1.104.0"
+    "vscode": "^1.85.0"
   },
-  "publisher": "StephanosKomnenos",
-  "homepage": "https://github.com/stephanoskomnenos/vscode-jieba",
+  "publisher": "ShelfSeeck",
+  "homepage": "https://github.com/ShelfSeeck/vscode-jieba-ctrllikeversion",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stephanoskomnenos/vscode-jieba"
+    "url": "https://github.com/ShelfSeeck/vscode-jieba-ctrllikeversion"
   },
   "icon": "jieba.png",
   "license": "MIT",
@@ -18,7 +18,8 @@
     "Chinese",
     "Segmentation",
     "中文",
-    "中文分词"
+    "中文分词",
+    "CJK"
   ],
   "categories": [
     "Other"
@@ -31,123 +32,143 @@
   "contributes": {
     "keybindings": [
       {
-        "command": "jieba.forwardWord",
-        "key": "Shift+Alt+F"
+        "command": "cws.forwardWord",
+        "key": "ctrl+right",
+        "mac": "alt+right",
+        "when": "editorTextFocus && !editorReadonly"
       },
       {
-        "command": "jieba.backwardWord",
-        "key": "Shift+Alt+B"
+        "command": "cws.backwardWord",
+        "key": "ctrl+left",
+        "mac": "alt+left",
+        "when": "editorTextFocus && !editorReadonly"
       },
       {
-        "command": "jieba.killWord",
-        "key": "Shift+Alt+D"
+        "command": "cws.killWord",
+        "key": "ctrl+delete",
+        "mac": "alt+delete",
+        "when": "editorTextFocus && !editorReadonly"
       },
       {
-        "command": "jieba.backwardKillWord",
-        "key": "Shift+Alt+Backspace"
+        "command": "cws.backwardKillWord",
+        "key": "ctrl+backspace",
+        "mac": "alt+backspace",
+        "when": "editorTextFocus && !editorReadonly"
       },
       {
-        "command": "jieba.selectWord",
-        "key": "Shift+Alt+2"
+        "command": "cws.forwardSelectWord",
+        "key": "ctrl+shift+right",
+        "mac": "alt+shift+right",
+        "when": "editorTextFocus && !editorReadonly"
+      },
+      {
+        "command": "cws.backwardSelectWord",
+        "key": "ctrl+shift+left",
+        "mac": "alt+shift+left",
+        "when": "editorTextFocus && !editorReadonly"
+      },
+      {
+        "command": "cws.selectWord",
+        "key": "ctrl+d",
+        "mac": "cmd+d",
+        "when": "editorTextFocus && !editorReadonly"
       }
     ],
     "commands": [
       {
-        "command": "jieba.forwardWord",
-        "title": "Jieba: Forward Word"
+        "command": "cws.forwardWord",
+        "title": "中文分词: 向后移动一个词"
       },
       {
-        "command": "jieba.backwardWord",
-        "title": "Jieba: Backward Word"
+        "command": "cws.backwardWord",
+        "title": "中文分词: 向前移动一个词"
       },
       {
-        "command": "jieba.forwardSelectWord",
-        "title": "Jieba: Forward Select Word"
+        "command": "cws.forwardSelectWord",
+        "title": "中文分词: 向后选择扩展"
       },
       {
-        "command": "jieba.backwardSelectWord",
-        "title": "Jieba: Backward Select Word"
+        "command": "cws.backwardSelectWord",
+        "title": "中文分词: 向前选择扩展"
       },
       {
-        "command": "jieba.killWord",
-        "title": "Jieba: Kill Word"
+        "command": "cws.killWord",
+        "title": "中文分词: 向后删除一个词"
       },
       {
-        "command": "jieba.backwardKillWord",
-        "title": "Jieba: Backward Kill Word"
+        "command": "cws.backwardKillWord",
+        "title": "中文分词: 向前删除一个词"
       },
       {
-        "command": "jieba.selectWord",
-        "title": "Jieba: Select Word"
+        "command": "cws.selectWord",
+        "title": "中文分词: 选中当前词"
       }
     ],
     "configuration": {
-      "title": "Jieba",
+      "title": "Chinese Word Segmentation",
       "properties": {
-        "jieba.segmenter": {
+        "cws.segmenter": {
           "type": "string",
           "default": "jieba-wasm",
-          "description": "Selects the segmenter engine for text segmentation.",
+          "description": "分词引擎选择",
           "enum": [
             "jieba-wasm",
             "Intl.Segmenter"
           ],
           "enumDescriptions": [
-            "Use Jieba segmenter (best for Chinese)",
-            "Use Node's Intl.Segmenter (supports multiple languages, but has smaller dictionary)"
+            "jieba-wasm: 基于 jieba-rs 的 WebAssembly 实现，中文分词效果最佳",
+            "Intl.Segmenter: Node.js 内置分词器，支持多语言但词典较小"
           ]
         },
-        "jieba.intlSegmenterLocales": {
+        "cws.intlSegmenterLocales": {
           "type": "array",
           "default": [
             "zh-CN"
           ],
-          "description": "A list of language locales for the Intl.Segmenter. Only applies when 'Segmenter' is set to 'Intl.Segmenter'.",
+          "description": "Intl.Segmenter 的语言区域设置列表，仅当分词引擎为 Intl.Segmenter 时生效",
           "items": {
             "type": "string"
           }
         },
-        "jieba.enableOnDoubleClick": {
+        "cws.enableOnDoubleClick": {
           "type": "boolean",
           "default": false,
-          "description": "Enable selection on double click."
+          "description": "启用双击选中分词"
         },
-        "jieba.clicksInterval": {
+        "cws.clicksInterval": {
           "type": "number",
           "default": 500,
-          "description": "The maximum interval in milliseconds between clicks to be considered a double click."
+          "description": "双击判定的时间间隔（毫秒）"
         },
-        "jieba.triggerDelay": {
+        "cws.triggerDelay": {
           "type": "number",
           "default": 150,
-          "description": "The delay after triggering the selection, to prevent conflicting with normal selection."
+          "description": "双击选中触发的延迟时间（毫秒），用于避免与普通选中冲突"
         }
       }
     }
   },
   "scripts": {
-    "vscode:prepublish": "bun run compile",
+    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "bun run compile && bun run lint",
+    "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "bun ./out/test/runTest.js",
-    "package": "bunx @vscode/vsce package",
-    "publish": "bunx @vscode/vsce publish"
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.0",
-    "@types/node": "^24.6.2",
-    "@types/vscode": "^1.104.0",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.6.2",
     "eslint": "^9.36.0",
     "glob": "^8.0.3",
     "mocha": "^10.0.0",
-    "ovsx": "^0.10.6",
-    "typescript": "^5.9.3",
+    "typescript": "^5.3.0",
     "typescript-eslint": "^8.45.0"
   },
   "dependencies": {

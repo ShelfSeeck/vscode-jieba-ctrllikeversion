@@ -7,7 +7,7 @@ let prevSelection: vscode.Selection | undefined;
 let timer: NodeJS.Timeout | undefined;
 
 export function doubleClickOnTextListener(e: vscode.TextEditorSelectionChangeEvent) {
-  const config = vscode.workspace.getConfiguration('jieba');
+  const config = vscode.workspace.getConfiguration('cws');
   const enableOnDoubleClick = config.get('enableOnDoubleClick', false);
   if (!enableOnDoubleClick) {
     return;
@@ -19,7 +19,7 @@ export function doubleClickOnTextListener(e: vscode.TextEditorSelectionChangeEve
   // MIT License
   // Copyright (c) 2021 Anthony Fu https://github.com/antfu
   // 解释：
-  // vscode中，如果两次点击的光标位置完全相同，编辑器识别出这是一个“双击”手势，于是执行默认的双击操作——选中光标所在的整个单词（以设置中的 editor.wordSeparators 为界）。
+  // vscode中，如果两次点击的光标位置完全相同，编辑器识别出这是一个"双击"手势，于是执行默认的双击操作——选中光标所在的整个单词（以设置中的 editor.wordSeparators 为界）。
   // 因此，在第一次鼠标点击后保存当前光标位置，在第二次点击触发vscode自带的选中操作后，重新执行自定义的选中操作即可。
 
   clearTimeout(timer);

@@ -1,94 +1,60 @@
-# Jieba for VSCode
+# Jieba Ctrl-like Version
 
-基于 `jieba-rs` 的 wasm 版本实现的 VSCode 中文分词插件。
+基于 [vscode-jieba](https://github.com/stephanoskomnenos/vscode-jieba) by StephanosKomnenos 改造，快捷键与英文体验统一。
 
-VSCode 本身以及 Vim、Emacs 插件都不具备中文分词功能。比如 Vim 插件只能在以空格或标点符号分割的词语之间跳转，但这明显不适合中文编辑。
+## 与原版区别
 
-这个插件则弥补了 VSCode 在这方面的缺陷，使得用户能够以词为单位，高效编辑中文文本。
+| 功能 | 原版 (vscode-jieba) | 本版 |
+|------|---------------------|------|
+| 向后移动一个词 | `Shift+Alt+F` | `Ctrl+Right` (Win) / `Alt+Right` (Mac) |
+| 向前移动一个词 | `Shift+Alt+B` | `Ctrl+Left` (Win) / `Alt+Left` (Mac) |
+| 向后删除一个词 | `Shift+Alt+D` | `Ctrl+Delete` (Win) / `Alt+Delete` (Mac) |
+| 向前删除一个词 | `Shift+Alt+Backspace` | `Ctrl+Backspace` (Win) / `Alt+Backspace` (Mac) |
+| 向后选择扩展 | 无快捷键 | `Ctrl+Shift+Right` (Win) / `Alt+Shift+Right` (Mac) |
+| 向前选择扩展 | 无快捷键 | `Ctrl+Shift+Left` (Win) / `Alt+Shift+Left` (Mac) |
+| 选中当前词 | `Shift+Alt+2` | `Ctrl+D` |
 
-本插件的目标为在纯中文以及中英混合文本中模拟 Emacs 风格的单词操作。目前在部分情况下与 Emacs 略有不同，详见“使用建议”部分。
+**核心改动**：快捷键与英文分词行为统一，无需记忆额外快捷键。
 
-## 使用方式
+## 功能
 
-| 命令                       | 描述                         | 默认键位                      |
-| -------------------------- | ---------------------------- | ----------------------------- |
-| `jieba.forwardWord`        | 将光标移至词尾               | `Shift` + `Alt` + `F`         |
-| `jieba.backwardWord`       | 将光标移至词首               | `Shift` + `Alt` + `B`         |
-| `jieba.killWord`           | 光标前进删除一个词           | `Shift` + `Alt` + `D`         |
-| `jieba.backwardKillWord`   | 光标后退删除一个词           | `Shift` + `Alt` + `Backspace` |
-| `jieba.selectWord`         | 选中光标下方的一个词         | `Shift` + `Alt` + `2`         |
-| `jieba.forwardSelectWord`  | 将光标移至词尾（选择模式下） |                               |
-| `jieba.backwardSelectWord` | 将光标移至词首（选择模式下） |                               |
+- `Ctrl+Left/Right` — 按中文词移动光标
+- `Ctrl+Backspace/Delete` — 按中文词删除
+- `Ctrl+Shift+Left/Right` — 按中文词选择扩展
+- `Ctrl+D` — 选中当前词
+- 支持双击选中分词（需启用配置 `cws.enableOnDoubleClick`）
+- 支持多光标操作
+- 支持 jieba-wasm 和 Intl.Segmenter 双引擎
 
-如果需要双击选中时分词，请启用`selectOnDoubleClick`设置。
+## 配置项
 
-## 示例
+| 配置 | 默认值 | 说明 |
+|------|--------|------|
+| `cws.segmenter` | `jieba-wasm` | 分词引擎 |
+| `cws.intlSegmenterLocales` | `["zh-CN"]` | Intl.Segmenter 语言 |
+| `cws.enableOnDoubleClick` | `false` | 双击选中分词 |
 
-![](https://github.com/stephanoskomnenos/vscode-jieba/raw/main/images/chn1.gif)
+## 安装
 
-![](https://github.com/stephanoskomnenos/vscode-jieba/raw/main/images/chn2.gif)
+### 从源码构建
 
-![](https://github.com/stephanoskomnenos/vscode-jieba/raw/main/images/eng.gif)
-
-## 使用建议
-
-### Vim 插件
-
-可以做如下键位绑定：
-
-Normal mode:
-
-``` json
-"vim.normalModeKeyBindings": [
-    {
-        "before": ["w"],
-        "commands": ["jieba.forwardWord"]
-    },
-    {
-        "before": ["b"],
-        "commands": ["jieba.backwardWord"]
-    },
-    {
-        "before": ["d", "w"],
-        "commands": ["jieba.killWord"]
-    },
-    {
-        "before": ["d", "b"],
-        "commands": ["jieba.backwardKillWord"]
-    }
-],
+```bash
+npm install
+npm run compile
+npm run package  # 生成 .vsix 文件
 ```
 
-Visual mode:
+在 VSCode 中安装 `.vsix` 文件：Extensions 面板 → "Install from VSIX..."
 
-```json
-"vim.visualModeKeyBindings": [
-    {
-        "before": ["w"],
-        "commands": ["jieba.forwardSelectWord"]
-    },
-    {
-        "before": ["b"],
-        "commands": ["jieba.backwardSelectWord"]
-    },
-],
-```
+### 调试
 
-注意：
-- 本插件模拟的是 Emacs 下 `Alt+F`, `Alt+B` 等快捷键的行为。
-- 因此，Vim 下的 `w` 和 `b` 与本插件的 `forwardWord` 和 `backwardWord` 并不一致：比如 Vim 下的 `w` 表现为跳至下一词的词首，而本插件的 `forwardWord` 为跳至当前词的末尾。
-- 删除的内容将写入系统剪贴板。多指针模式下删除时，剪贴板里将会是第一个指针删除的内容。
+在 VSCode 中打开项目，按 F5 启动 Extension Development Host。
 
-### Emacs 插件
+## 致谢
 
-**待完成**
+- [stephanoskomnenos/vscode-jieba](https://github.com/stephanoskomnenos/vscode-jieba) — 原始项目
+- [jieba-wasm](https://github.com/nicross/jieba-wasm) — jieba-rs 的 WebAssembly 实现
 
-注意：
-- 本插件在遇到换行符时的行为与 Emacs 不同：比如 Emacs 的 `Alt+F` 会从行尾空格跳转到下一行第一个词的末尾，本插件则是跳转到下一行的行首。
-- 删除的内容将写入系统剪贴板。多指针模式下删除时，剪贴板里将会是第一个指针删除的内容。
+## License
 
-## 相关项目
-
-- [jieba-rs](https://github.com/messense/jieba-rs)
-- [jieba-wasm](https://github.com/fengkx/jieba-wasm)
-- [deno-bridge-jieba](https://github.com/ginqi7/deno-bridge-jieba)
+MIT License — 保留原作者版权声明

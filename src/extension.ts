@@ -17,19 +17,19 @@ export async function activate(context: vscode.ExtensionContext) {
   await initializeSegmenter();
   // 监听配置更改。当用户切换分词器设置时，重新初始化。
   const disposableConfigListener = vscode.workspace.onDidChangeConfiguration(async (event) => {
-    if (event.affectsConfiguration('jieba.segmenter') || event.affectsConfiguration('jieba.intlSegmenterLocales')) {
+    if (event.affectsConfiguration('cws.segmenter') || event.affectsConfiguration('cws.intlSegmenterLocales')) {
       await initializeSegmenter();
     }
   });
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("jieba.forwardWord", forwardWord),
-    vscode.commands.registerCommand("jieba.backwardWord", backwardWord),
-    vscode.commands.registerCommand("jieba.forwardSelectWord", forwardSelectWord),
-    vscode.commands.registerCommand("jieba.backwardSelectWord", backwardSelectWord),
-    vscode.commands.registerCommand("jieba.killWord", killWord),
-    vscode.commands.registerCommand("jieba.backwardKillWord", backwardKillWord),
-    vscode.commands.registerCommand("jieba.selectWord", selectWord),
+    vscode.commands.registerCommand("cws.forwardWord", forwardWord),
+    vscode.commands.registerCommand("cws.backwardWord", backwardWord),
+    vscode.commands.registerCommand("cws.forwardSelectWord", forwardSelectWord),
+    vscode.commands.registerCommand("cws.backwardSelectWord", backwardSelectWord),
+    vscode.commands.registerCommand("cws.killWord", killWord),
+    vscode.commands.registerCommand("cws.backwardKillWord", backwardKillWord),
+    vscode.commands.registerCommand("cws.selectWord", selectWord),
     vscode.window.onDidChangeTextEditorSelection(doubleClickOnTextListener),
     disposableConfigListener,
   );
