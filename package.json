@@ -144,6 +144,11 @@
           "type": "number",
           "default": 150,
           "description": "双击选中触发的延迟时间（毫秒），用于避免与普通选中冲突"
+        },
+        "cws.enableWordHighlight": {
+          "type": "boolean",
+          "default": true,
+          "description": "启用中文分词词高亮（光标放在中文词上时高亮所有相同词）"
         }
       }
     }
