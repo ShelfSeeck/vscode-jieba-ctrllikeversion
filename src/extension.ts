@@ -10,7 +10,6 @@ import {
 } from "./command";
 import { doubleClickOnTextListener } from "./listener";
 import { initializeSegmenter } from "./parse";
-import { CwsDocumentHighlightProvider } from "./highlight";
 
 export async function activate(context: vscode.ExtensionContext) {
 
@@ -23,12 +22,6 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  // 注册中文分词词高亮提供者（对所有文本文件生效）
-  const highlightProvider = vscode.languages.registerDocumentHighlightProvider(
-    { language: '*' },
-    new CwsDocumentHighlightProvider()
-  );
-
   context.subscriptions.push(
     vscode.commands.registerCommand("cws.forwardWord", forwardWord),
     vscode.commands.registerCommand("cws.backwardWord", backwardWord),
@@ -39,7 +32,6 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("cws.selectWord", selectWord),
     vscode.window.onDidChangeTextEditorSelection(doubleClickOnTextListener),
     disposableConfigListener,
-    highlightProvider,
   );
 }
 
